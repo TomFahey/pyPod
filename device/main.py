@@ -11,6 +11,8 @@
 #   Tap "Back"  →  Song List page    (pauses playback)
 
 import os, sys, io, time
+import micropython
+from machine import Timer
 import M5
 from M5 import *
 import m5ui
@@ -70,7 +72,6 @@ _current_idx    = -1     # index of currently selected / playing track
 _is_playing     = False
 _play_start_ms  = 0      # ticks_ms when last play/resume began
 _elapsed_offset = 0      # ms accumulated before current play session
-_last_update_ms = 0      # ticks_ms of last UI refresh (for throttling)
 _volume         = DEFAULT_VOL
 
 
@@ -266,14 +267,8 @@ def _get_lyric_text(lyrics, secs):
     return "\n".join(text for _, text in window)
 
 
-def _update_playback_ui():
-    """Throttled refresh called from loop(); updates progress bar, timestamp, lyrics."""
-    global _last_update_ms
-    now = time.ticks_ms()
-    if time.ticks_diff(now, _last_update_ms) < UPDATE_MS:
-        return
-    _last_update_ms = now
-
+def _update_playback_ui(_arg=None):
+    """Called via micropython.schedule() from the timer ISR; updates progress bar, timestamp, lyrics."""
     if _current_idx < 0:
         return
     track = _tracks[_current_idx]
@@ -597,6 +592,13 @@ def _build_song_list(now_page):
     return page
 
 
+def _timer_cb(t):
+    """Timer ISR — runs in interrupt context every UPDATE_MS ms.
+    Schedules _update_playback_ui() on the main thread only while playing."""
+    if _is_playing:
+        micropython.schedule(_update_playback_ui, None)
+
+
 # ── Setup ─────────────────────────────────────────────────────────
 def setup():
     global _player, _tracks
@@ -620,10 +622,12 @@ def setup():
 
     list_page.screen_load()
 
+    # Start background timer — fires every UPDATE_MS, schedules UI refresh when playing
+    Timer(0).init(period=UPDATE_MS, mode=Timer.PERIODIC, callback=_timer_cb)
+
 
 def loop():
     M5.update()
-    _update_playback_ui()
 
 
 if __name__ == "__main__":
