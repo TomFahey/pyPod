@@ -1,0 +1,10 @@
+# Exclude resources folder
+/resources/
+
+# MicroPython / Python bytecode
+*.pyc
+__pycache__/
+
+# OS artefacts
+.DS_Store
+Thumbs.db
