@@ -1,0 +1,280 @@
+/* pyPod CodeClub — shared lesson stylesheet */
+
+:root {
+  --brand:        #89B4FA;
+  --brand-dark:   #5a8fd4;
+  --purple:       #CBA6F7;
+  --green:        #A6E3A1;
+  --yellow:       #F9E2AF;
+  --red:          #F38BA8;
+  --bg:           #FFFFFF;
+  --surface:      #F4F4F8;
+  --border:       #D9D9E8;
+  --text:         #1E1E2E;
+  --muted:        #6C7086;
+  --code-bg:      #1E1E2E;
+  --code-text:    #CDD6F4;
+  --code-comment: #6C7086;
+  --code-kw:      #CBA6F7;
+  --code-str:     #A6E3A1;
+  --code-num:     #FAB387;
+  --code-fn:      #89B4FA;
+  --nav-h:        56px;
+}
+
+/* ── Reset ─────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 17px; scroll-behavior: smooth; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  padding-bottom: 4rem;
+}
+
+/* ── Top navigation bar ─────────────────────────────────────────── */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--text);
+  color: #fff;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  gap: 1rem;
+}
+
+.topbar .logo {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--brand);
+  text-decoration: none;
+  margin-right: auto;
+}
+
+.topbar a {
+  color: #cdd6f4;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.topbar a:hover      { background: rgba(255,255,255,0.1); }
+.topbar a.active     { background: var(--brand); color: #1e1e2e; font-weight: 600; }
+
+/* ── Page header ────────────────────────────────────────────────── */
+.lesson-header {
+  background: linear-gradient(135deg, var(--text) 0%, #313244 100%);
+  color: #fff;
+  padding: 3rem 2rem 2.5rem;
+}
+
+.lesson-header .session-tag {
+  display: inline-block;
+  background: var(--brand);
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.2rem 0.7rem;
+  border-radius: 20px;
+  margin-bottom: 0.8rem;
+}
+
+.lesson-header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+.lesson-header .subtitle { color: #BAC2DE; font-size: 1.05rem; }
+
+/* ── Main content area ──────────────────────────────────────────── */
+.content {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* ── Info panels ────────────────────────────────────────────────── */
+.panel {
+  border-left: 4px solid var(--brand);
+  background: var(--surface);
+  border-radius: 0 8px 8px 0;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.panel.objectives { border-color: var(--green); }
+.panel.concepts   { border-color: var(--purple); }
+.panel.challenge  { border-color: var(--yellow); background: #fffdf4; }
+.panel.warning    { border-color: var(--red);    background: #fff4f4; }
+.panel.tip        { border-color: var(--brand);  background: #f0f5ff; }
+
+.panel-title {
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+  color: var(--muted);
+}
+
+.panel.objectives .panel-title { color: #3d8a3a; }
+.panel.concepts   .panel-title { color: #7c5fa8; }
+.panel.challenge  .panel-title { color: #9a7a1a; }
+.panel.warning    .panel-title { color: #b83030; }
+.panel.tip        .panel-title { color: var(--brand-dark); }
+
+.panel ul, .panel ol { padding-left: 1.3rem; }
+.panel li { margin-bottom: 0.25rem; }
+
+/* ── Section headings ───────────────────────────────────────────── */
+h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 2.2rem 0 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid var(--border);
+  color: var(--text);
+}
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem;
+  color: var(--text);
+}
+
+p { margin-bottom: 0.9rem; }
+
+/* ── Numbered steps ─────────────────────────────────────────────── */
+.steps { counter-reset: step; list-style: none; padding: 0; }
+
+.steps > li {
+  counter-increment: step;
+  position: relative;
+  padding: 1rem 1rem 1rem 3.5rem;
+  margin-bottom: 1rem;
+  background: var(--surface);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.steps > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0.85rem;
+  top: 1rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  background: var(--brand);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Code blocks ────────────────────────────────────────────────── */
+pre {
+  background: var(--code-bg);
+  color: var(--code-text);
+  border-radius: 8px;
+  padding: 1.1rem 1.25rem;
+  overflow-x: auto;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin: 0.75rem 0 1rem;
+  tab-size: 4;
+}
+
+code {
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+}
+
+p code, li code {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.88em;
+  color: #6c7086;
+}
+
+/* Syntax colouring — applied via <span> inside <pre><code> */
+.kw  { color: var(--code-kw);      font-weight: 600; }   /* keyword */
+.fn  { color: var(--code-fn);                        }   /* function/method */
+.str { color: var(--code-str);                       }   /* string */
+.num { color: var(--code-num);                       }   /* number/constant */
+.cm  { color: var(--code-comment); font-style: italic; } /* comment */
+
+/* ── Filename label above a code block ──────────────────────────── */
+.filename {
+  display: inline-block;
+  background: var(--code-bg);
+  color: var(--muted);
+  font-family: monospace;
+  font-size: 0.78rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px 6px 0 0;
+  margin-bottom: -2px;
+}
+
+/* ── Inline callout ─────────────────────────────────────────────── */
+.callout {
+  display: flex;
+  gap: 0.75rem;
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin: 1rem 0;
+  border: 1px solid var(--border);
+  align-items: flex-start;
+}
+
+.callout .icon { font-size: 1.4rem; line-height: 1; }
+.callout p     { margin: 0; font-size: 0.95rem; }
+
+/* ── Bottom lesson navigation ───────────────────────────────────── */
+.lesson-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--border);
+  gap: 1rem;
+}
+
+.lesson-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 1px solid var(--border);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.lesson-nav a:hover         { background: var(--brand); border-color: var(--brand); color: var(--text); }
+.lesson-nav a.disabled      { opacity: 0.35; pointer-events: none; }
+.lesson-nav .lesson-counter { color: var(--muted); font-size: 0.9rem; }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .lesson-header h1 { font-size: 1.5rem; }
+  .topbar a:not(.logo) { display: none; }
+  .topbar a.active     { display: inline-flex; }
+  pre { font-size: 0.8rem; }
+}

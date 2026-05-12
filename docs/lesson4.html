@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — Making Music Play | pyPod CodeClub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="logo" href="lesson1.html">🎵 pyPod</a>
+  <a href="lesson1.html">1</a>
+  <a href="lesson2.html">2</a>
+  <a href="lesson3.html">3</a>
+  <a href="lesson4.html" class="active">4</a>
+  <a href="lesson5.html">5</a>
+  <a href="lesson6.html">6</a>
+</nav>
+
+<header class="lesson-header">
+  <div class="session-tag">Session 4 of 6</div>
+  <h1>Making Music Play</h1>
+  <p class="subtitle">Wire up the media controls so that tapping a song actually plays it.</p>
+</header>
+
+<main class="content">
+
+  <div class="panel objectives">
+    <div class="panel-title">🎯 By the end of this lesson you will be able to…</div>
+    <ul>
+      <li>Explain what a <strong>callback</strong> is in plain English</li>
+      <li>Use <code>on_song_selected</code> to respond when the user taps a track</li>
+      <li>Use <code>play()</code>, <code>pause()</code>, and <code>resume()</code> to control playback</li>
+      <li>Use <code>on_track_ended</code> to move to the next song automatically</li>
+    </ul>
+  </div>
+
+  <!-- ── Part 1 ── -->
+  <h2>Part 1 — What is a callback?</h2>
+
+  <p>
+    Up until now every piece of code you have written has run <em>immediately</em> from top to bottom.
+    But a music player needs to <em>wait</em> — wait for the user to tap a song, wait for the
+    song to end, wait for the pause button to be pressed.
+  </p>
+
+  <p>
+    A <strong>callback</strong> is a function that you write, but that you hand to someone else
+    to call <em>later</em>, when something specific happens.
+  </p>
+
+  <div class="callout">
+    <span class="icon">📦</span>
+    <p>
+      Think of it like leaving a note for a delivery driver: <em>"When the parcel arrives,
+      ring the doorbell."</em> You write the instruction, but the driver decides when to carry it out.
+      Your function is the instruction; the device is the delivery driver.
+    </p>
+  </div>
+
+  <p>Here is the simplest possible example to show the idea:</p>
+
+<pre><code><span class="kw">def</span> <span class="fn">say_hello</span>():
+    <span class="fn">print</span>(<span class="str">"Hello!"</span>)
+
+<span class="cm"># We pass say_hello to something else — note: NO brackets after the name!</span>
+<span class="cm"># We are handing over the function itself, not calling it right now.</span>
+<span class="fn">on_song_selected</span>(say_hello)
+</code></pre>
+
+  <div class="panel tip">
+    <div class="panel-title">💡 Brackets or no brackets?</div>
+    <p>
+      <code>say_hello()</code> — with brackets — <em>calls</em> the function right now.<br>
+      <code>say_hello</code> — without brackets — refers to the function as a value
+      that can be passed around. When you register a callback you always use the
+      <em>no-brackets</em> form.
+    </p>
+  </div>
+
+  <!-- ── Part 2 ── -->
+  <h2>Part 2 — Responding when a song is tapped</h2>
+
+  <p>
+    <code>on_song_selected</code> registers a function that will be called whenever
+    the user taps a song in the list. Your function receives the <code>Track</code>
+    object for the song they chose:
+  </p>
+
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> on_song_selected, play
+
+<span class="kw">def</span> <span class="fn">handle_selection</span>(track):
+    <span class="fn">play</span>(track)
+
+<span class="fn">on_song_selected</span>(handle_selection)
+</code></pre>
+
+  <p>
+    There is a neater way to write exactly the same thing, using the <strong>decorator</strong>
+    syntax. Place <code>@on_song_selected</code> on the line directly above your function
+    definition, and Python registers it for you automatically:
+  </p>
+
+<pre><code><span class="kw">@</span><span class="fn">on_song_selected</span>
+<span class="kw">def</span> <span class="fn">handle_selection</span>(track):
+    <span class="fn">play</span>(track)
+</code></pre>
+
+  <div class="panel tip">
+    <div class="panel-title">💡 What does <code>@</code> mean?</div>
+    <p>
+      The <code>@</code> symbol is just a shortcut. <code>@on_song_selected</code> above a
+      function is exactly the same as writing
+      <code>on_song_selected(handle_selection)</code> below it.
+      Both styles work; the <code>@</code> style just keeps things tidy.
+    </p>
+  </div>
+
+  <!-- ── Part 3 ── -->
+  <h2>Part 3 — The play, pause, and resume functions</h2>
+
+  <p>
+    Once a track is playing, you will want to be able to pause and resume it.
+    The play/pause button on the Now Playing screen calls these functions
+    automatically — but you can also call them yourself:
+  </p>
+
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> play, pause, resume, is_playing
+
+<span class="cm"># Start playing a track</span>
+<span class="fn">play</span>(my_track)
+
+<span class="cm"># Pause (only does something if a track is playing)</span>
+<span class="fn">pause</span>()
+
+<span class="cm"># Resume (only does something if a track is paused)</span>
+<span class="fn">resume</span>()
+
+<span class="cm"># Check whether something is currently playing</span>
+<span class="kw">if</span> <span class="fn">is_playing</span>():
+    <span class="fn">print</span>(<span class="str">"Music is playing!"</span>)
+</code></pre>
+
+  <!-- ── Part 4 ── -->
+  <h2>Part 4 — Moving to the next song automatically</h2>
+
+  <p>
+    <code>on_track_ended</code> works in the same way as <code>on_song_selected</code>,
+    except it fires when the current track finishes playing. Register a function there
+    to move to the next track automatically:
+  </p>
+
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> on_track_ended, next_track
+
+<span class="kw">@</span><span class="fn">on_track_ended</span>
+<span class="kw">def</span> <span class="fn">handle_end</span>():
+    <span class="fn">next_track</span>()       <span class="cm"># play the next song in the list</span>
+</code></pre>
+
+  <!-- ── Part 5 ── -->
+  <h2>Part 5 — Keeping track of the current song</h2>
+
+  <p>
+    In later lessons you will need to know <em>which</em> track is playing (to look up
+    its lyrics, for example). Store it in a variable each time a new song starts:
+  </p>
+
+<pre><code>current_track = <span class="kw">None</span>    <span class="cm"># no song selected yet</span>
+
+<span class="kw">@</span><span class="fn">on_song_selected</span>
+<span class="kw">def</span> <span class="fn">handle_selection</span>(track):
+    <span class="kw">global</span> current_track   <span class="cm"># we are updating a variable outside this function</span>
+    current_track = track
+    <span class="fn">play</span>(track)
+</code></pre>
+
+  <div class="panel tip">
+    <div class="panel-title">💡 What does <code>global</code> do?</div>
+    <p>
+      Normally, any variable you create or change inside a function belongs only to that
+      function and disappears when the function ends. Writing <code>global current_track</code>
+      tells Python: "I mean the <em>module-level</em> variable, not a local copy". Without it,
+      <code>current_track</code> would only update <em>inside</em> the function, and the rest of
+      your code would never see the change.
+    </p>
+  </div>
+
+  <h2>Part 6 — Putting it all together</h2>
+
+  <span class="filename">main.py</span>
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> (
+    Track, add_track,
+    play, next_track,
+    on_song_selected, on_track_ended,
+    list_music_files, music_path, lyrics_path,
+    start,
+)
+
+<span class="cm"># --- functions from previous lessons ---</span>
+<span class="kw">def</span> <span class="fn">parse_filename</span>(filename): ...
+<span class="kw">def</span> <span class="fn">load_lyrics</span>(path): ...
+
+<span class="cm"># --- build the track list ---</span>
+<span class="kw">for</span> filename <span class="kw">in</span> <span class="fn">list_music_files</span>():
+    title, artist = <span class="fn">parse_filename</span>(filename)
+    track = Track(title=title, artist=artist,
+                  file_path=<span class="fn">music_path</span>(filename),
+                  lyrics=<span class="fn">load_lyrics</span>(<span class="fn">lyrics_path</span>(title)))
+    <span class="fn">add_track</span>(track)
+
+<span class="cm"># --- callbacks ---</span>
+current_track = <span class="kw">None</span>
+
+<span class="kw">@</span><span class="fn">on_song_selected</span>
+<span class="kw">def</span> <span class="fn">handle_selection</span>(track):
+    <span class="kw">global</span> current_track
+    current_track = track
+    <span class="fn">play</span>(track)
+
+<span class="kw">@</span><span class="fn">on_track_ended</span>
+<span class="kw">def</span> <span class="fn">handle_end</span>():
+    <span class="fn">next_track</span>()
+
+<span class="fn">start</span>()
+</code></pre>
+
+  <ol class="steps">
+    <li>Add the <code>current_track</code> variable and the two callback functions to your <code>main.py</code>.</li>
+    <li>Run the code, tap a song — it should start playing and switch to the Now Playing screen.</li>
+    <li>Let the song finish — it should move to the next one automatically.</li>
+    <li>Check that the play/pause button and the skip buttons on the Now Playing page all work.</li>
+  </ol>
+
+  <div class="panel challenge">
+    <div class="panel-title">🏆 Challenge</div>
+    <ul>
+      <li>
+        Print the title of the current track to the console every time a new song starts.
+        (Hint: add a <code>print</code> inside <code>handle_selection</code>.)
+      </li>
+      <li>
+        The <code>on_track_ended</code> callback currently moves to the <em>next</em> track.
+        Can you make it loop back to the very first track when the last song ends?
+        (Hint: you may want to store the full track list in a variable and check the index.)
+      </li>
+    </ul>
+  </div>
+
+  <nav class="lesson-nav">
+    <a href="lesson3.html">← Lesson 3</a>
+    <span class="lesson-counter">4 / 6</span>
+    <a href="lesson5.html">Next → Lesson 5</a>
+  </nav>
+
+</main>
+</body>
+</html>

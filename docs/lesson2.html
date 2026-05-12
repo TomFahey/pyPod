@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — Songs from the SD Card | pyPod CodeClub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="logo" href="lesson1.html">🎵 pyPod</a>
+  <a href="lesson1.html">1</a>
+  <a href="lesson2.html" class="active">2</a>
+  <a href="lesson3.html">3</a>
+  <a href="lesson4.html">4</a>
+  <a href="lesson5.html">5</a>
+  <a href="lesson6.html">6</a>
+</nav>
+
+<header class="lesson-header">
+  <div class="session-tag">Session 2 of 6</div>
+  <h1>Songs from the SD Card</h1>
+  <p class="subtitle">Read the SD card to discover what songs are available, then build your track list automatically.</p>
+</header>
+
+<main class="content">
+
+  <div class="panel objectives">
+    <div class="panel-title">🎯 By the end of this lesson you will be able to…</div>
+    <ul>
+      <li>Use <code>list_music_files()</code> to get a list of filenames from the SD card</li>
+      <li>Use string methods (<code>rfind</code>, slicing, <code>strip</code>) to extract information from a string</li>
+      <li>Write a function that takes a filename and returns the song title and artist</li>
+      <li>Use a <code>for</code> loop to process every file automatically</li>
+      <li>Populate the song list entirely from the SD card — no more typing songs by hand!</li>
+    </ul>
+  </div>
+
+  <div class="panel tip">
+    <div class="panel-title">🔁 Recall from Lesson 1</div>
+    <p>
+      In Lesson 1 you created Track objects by hand and called <code>add_track()</code> for each one.
+      That works, but what if the SD card has 50 songs? You would need 50 lines of code just for setup!
+      This lesson shows you how to do all of that automatically.
+    </p>
+  </div>
+
+  <!-- ── Part 1 ── -->
+  <h2>Part 1 — Listing the files on the SD card</h2>
+
+  <p>
+    The <code>pypod</code> module provides a helper called <code>list_music_files()</code>.
+    Call it and it returns a Python list of filenames — one for every <code>.mp3</code> file
+    on the SD card:
+  </p>
+
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> list_music_files
+
+files = <span class="fn">list_music_files</span>()
+<span class="fn">print</span>(files)
+
+<span class="cm"># Example output:</span>
+<span class="cm"># ['Bohemian Rhapsody (Queen).mp3',</span>
+<span class="cm">#  'Never Gonna Give You Up (Rick Astley).mp3',</span>
+<span class="cm">#  'Wonderwall (Oasis).mp3']</span>
+</code></pre>
+
+  <p>
+    Under the hood this uses a standard Python function called <code>os.listdir()</code> —
+    you will see that in later projects. For now, <code>list_music_files()</code> is all you need.
+  </p>
+
+  <!-- ── Part 2 ── -->
+  <h2>Part 2 — Taking a filename apart</h2>
+
+  <p>
+    Every filename follows the same pattern: <code>Song Title (Artist).mp3</code>.
+    We need to pull it apart to get the title and artist separately.
+  </p>
+
+  <p>Let's look at the pieces step by step:</p>
+
+  <ol class="steps">
+    <li>
+      <strong>Remove the <code>.mp3</code> extension.</strong>
+      A string is a sequence of characters. We can take a slice of it using square brackets:
+      <code>filename[:-4]</code> means "everything except the last 4 characters".
+<pre><code>filename = <span class="str">"Wonderwall (Oasis).mp3"</span>
+stem = filename[:-<span class="num">4</span>]       <span class="cm"># "Wonderwall (Oasis)"</span>
+</code></pre>
+    </li>
+    <li>
+      <strong>Find the opening bracket.</strong>
+      <code>rfind("(")</code> searches the string from right to left and returns the
+      <em>position</em> (index) of the last <code>(</code>.
+<pre><code>position = stem.<span class="fn">rfind</span>(<span class="str">"("</span>)  <span class="cm"># 11  (in "Wonderwall (Oasis)")</span>
+</code></pre>
+    </li>
+    <li>
+      <strong>Slice the string at that position.</strong>
+      Everything <em>before</em> the bracket is the title; everything
+      <em>between</em> the brackets is the artist.
+<pre><code>title  = stem[:position].<span class="fn">strip</span>()       <span class="cm"># "Wonderwall"</span>
+artist = stem[position + <span class="num">1</span> : -<span class="num">1</span>].<span class="fn">strip</span>() <span class="cm"># "Oasis"</span>
+</code></pre>
+      <div class="callout">
+        <span class="icon">📐</span>
+        <p><code>stem[position + 1 : -1]</code> skips the <code>(</code> at the start
+           and the <code>)</code> at the end. <code>strip()</code> removes any extra
+           spaces at the edges.</p>
+      </div>
+    </li>
+  </ol>
+
+  <!-- ── Part 3 ── -->
+  <h2>Part 3 — Putting it in a function</h2>
+
+  <p>
+    You are going to do the same steps for <em>every</em> filename. Any time you need to
+    repeat the same set of steps, a <strong>function</strong> is the right tool.
+    Write the logic once; call it as many times as you need.
+  </p>
+
+  <p>
+    A function that takes a filename and <strong>returns</strong> both the title
+    and the artist as a pair (called a <strong>tuple</strong>) looks like this:
+  </p>
+
+<pre><code><span class="kw">def</span> <span class="fn">parse_filename</span>(filename):
+    <span class="str">"""Given a filename like 'Wonderwall (Oasis).mp3',
+    return ('Wonderwall', 'Oasis')."""</span>
+    stem     = filename[:-<span class="num">4</span>]
+    position = stem.<span class="fn">rfind</span>(<span class="str">"("</span>)
+    title    = stem[:position].<span class="fn">strip</span>()
+    artist   = stem[position + <span class="num">1</span> : -<span class="num">1</span>].<span class="fn">strip</span>()
+    <span class="kw">return</span> title, artist   <span class="cm"># returning two values at once</span>
+
+<span class="cm"># Using the function:</span>
+t, a = <span class="fn">parse_filename</span>(<span class="str">"Wonderwall (Oasis).mp3"</span>)
+<span class="fn">print</span>(t)  <span class="cm"># Wonderwall</span>
+<span class="fn">print</span>(a)  <span class="cm"># Oasis</span>
+</code></pre>
+
+  <div class="panel tip">
+    <div class="panel-title">💡 Returning two values</div>
+    <p>
+      <code>return title, artist</code> packages both values into a tuple.
+      On the receiving end, writing <code>t, a = parse_filename(...)</code>
+      unpacks them automatically — <code>t</code> gets the title, <code>a</code> gets the artist.
+      This is called <strong>tuple unpacking</strong>.
+    </p>
+  </div>
+
+  <!-- ── Part 4 ── -->
+  <h2>Part 4 — Looping over all filenames</h2>
+
+  <p>
+    A <code>for</code> loop lets you run a block of code once for every item in a list.
+    Combine that with your new function and you can process every file automatically:
+  </p>
+
+<pre><code>files = <span class="fn">list_music_files</span>()
+
+<span class="kw">for</span> filename <span class="kw">in</span> files:
+    <span class="fn">print</span>(filename)      <span class="cm"># runs once per filename in the list</span>
+</code></pre>
+
+  <!-- ── Part 5 ── -->
+  <h2>Part 5 — Building and displaying the full track list</h2>
+
+  <p>
+    Now put it all together. For each filename: parse it, create a <code>Track</code>,
+    and call <code>add_track()</code>:
+  </p>
+
+  <span class="filename">main.py</span>
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> Track, add_track, list_music_files, music_path, start
+
+<span class="kw">def</span> <span class="fn">parse_filename</span>(filename):
+    <span class="str">"""Return (title, artist) from a filename like 'Song (Artist).mp3'."""</span>
+    stem     = filename[:-<span class="num">4</span>]
+    position = stem.<span class="fn">rfind</span>(<span class="str">"("</span>)
+    title    = stem[:position].<span class="fn">strip</span>()
+    artist   = stem[position + <span class="num">1</span> : -<span class="num">1</span>].<span class="fn">strip</span>()
+    <span class="kw">return</span> title, artist
+
+
+<span class="kw">for</span> filename <span class="kw">in</span> <span class="fn">list_music_files</span>():
+    title, artist = <span class="fn">parse_filename</span>(filename)
+    track = Track(
+        title     = title,
+        artist    = artist,
+        file_path = <span class="fn">music_path</span>(filename),
+    )
+    <span class="fn">add_track</span>(track)
+
+
+<span class="fn">start</span>()
+</code></pre>
+
+  <ol class="steps">
+    <li>Add the <code>parse_filename</code> function to your <code>main.py</code>.</li>
+    <li>Replace your hand-written tracks from Lesson 1 with the <code>for</code> loop above.</li>
+    <li>Run the code — the player should now list every <code>.mp3</code> file from the SD card automatically.</li>
+    <li>Try adding a new MP3 to the SD card (ask your teacher to copy one on), then restart the device. Does it appear without you changing any code?</li>
+  </ol>
+
+  <div class="panel challenge">
+    <div class="panel-title">🏆 Challenge</div>
+    <ul>
+      <li>
+        Print the total number of songs found. Hint: <code>len()</code> returns the length of a list.
+        You will need to store the list of filenames in a variable before the <code>for</code> loop.
+      </li>
+      <li>
+        What happens if a filename does not contain brackets?
+        Can you add a check to your <code>parse_filename</code> function to handle this gracefully
+        — e.g. use the full stem as the title and leave the artist blank?
+      </li>
+    </ul>
+  </div>
+
+  <nav class="lesson-nav">
+    <a href="lesson1.html">← Lesson 1</a>
+    <span class="lesson-counter">2 / 6</span>
+    <a href="lesson3.html">Next → Lesson 3</a>
+  </nav>
+
+</main>
+</body>
+</html>

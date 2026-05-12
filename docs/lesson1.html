@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — Meet the Track | pyPod CodeClub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="logo" href="lesson1.html">🎵 pyPod</a>
+  <a href="lesson1.html" class="active">1</a>
+  <a href="lesson2.html">2</a>
+  <a href="lesson3.html">3</a>
+  <a href="lesson4.html">4</a>
+  <a href="lesson5.html">5</a>
+  <a href="lesson6.html">6</a>
+</nav>
+
+<header class="lesson-header">
+  <div class="session-tag">Session 1 of 6</div>
+  <h1>Meet the Track</h1>
+  <p class="subtitle">Use a Python class to represent a song, then add your favourite tracks to the player.</p>
+</header>
+
+<main class="content">
+
+  <div class="panel objectives">
+    <div class="panel-title">🎯 By the end of this lesson you will be able to…</div>
+    <ul>
+      <li>Explain what a Python <strong>class</strong> is and why it is useful</li>
+      <li>Create a simple class with attributes</li>
+      <li>Use the <code>__init__</code> method to set up a class correctly</li>
+      <li>Create several <strong>Track</strong> objects and display them in the song list</li>
+    </ul>
+  </div>
+
+  <div class="panel concepts">
+    <div class="panel-title">💡 New Python concept — Classes</div>
+    <p>
+      So far you have used Python's built-in types to store data: strings, numbers, lists.
+      But what if you want to store <em>several related pieces of data together</em>?
+      A <strong>class</strong> lets you bundle data under a single name.
+    </p>
+    <p>
+      Think of a class like a <em>template</em> or <em>blueprint</em>: once you have defined
+      the blueprint you can make as many individual copies (called <strong>objects</strong>
+      or <strong>instances</strong>) as you like.
+    </p>
+  </div>
+
+  <!-- ── Part 1 ── -->
+  <h2>Part 1 — A song has several pieces of information</h2>
+
+  <p>
+    Every song in your MP3 player has a title, an artist, a file on the SD card, and
+    (optionally) a set of lyrics. Without a class you would need a separate variable for
+    every piece of data for every song — that gets messy very quickly!
+  </p>
+
+  <p>
+    Instead, we can define a <code>Track</code> class once and then use it to create a
+    neat bundle for each song:
+  </p>
+
+  <span class="filename">main.py</span>
+<pre><code><span class="cm"># A blueprint that describes what every Track looks like</span>
+<span class="kw">class</span> <span class="fn">Track</span>:
+    artist = <span class="str">""</span>
+    title  = <span class="str">""</span>
+
+<span class="cm"># Create two Track objects from the blueprint</span>
+song1 = Track()
+song1.artist = <span class="str">"Oasis"</span>
+song1.title  = <span class="str">"Wonderwall"</span>
+
+song2 = Track()
+song2.artist = <span class="str">"Rick Astley"</span>
+song2.title  = <span class="str">"Never Gonna Give You Up"</span>
+
+<span class="fn">print</span>(song1.title)   <span class="cm"># Wonderwall</span>
+<span class="fn">print</span>(song2.artist)  <span class="cm"># Rick Astley</span>
+</code></pre>
+
+  <p>
+    Each object has its own copy of <code>title</code> and <code>artist</code>. You access
+    them with a dot: <code>song1.title</code>.
+  </p>
+
+  <!-- ── Part 2 ── -->
+  <h2>Part 2 — The shared-variable trap 🪤</h2>
+
+  <p>
+    The code above looks fine, but it contains a hidden bug. Try this in the Python shell
+    or as a quick experiment:
+  </p>
+
+<pre><code><span class="kw">class</span> <span class="fn">Track</span>:
+    artist = <span class="str">""</span>
+
+song1 = Track()
+song2 = Track()
+
+song1.artist = <span class="str">"Oasis"</span>
+
+<span class="fn">print</span>(song1.artist)  <span class="cm"># Oasis — fine</span>
+<span class="fn">print</span>(song2.artist)  <span class="cm"># "" — still fine here, but…</span>
+
+<span class="cm"># Now change artist on the CLASS itself:</span>
+Track.artist = <span class="str">"Coldplay"</span>
+
+<span class="fn">print</span>(song1.artist)  <span class="cm"># Oasis  — song1 has its own copy</span>
+<span class="fn">print</span>(song2.artist)  <span class="cm"># Coldplay — song2 had NO copy yet, so it uses the class's</span>
+</code></pre>
+
+  <div class="panel warning">
+    <div class="panel-title">⚠️ What went wrong?</div>
+    <p>
+      When you write <code>artist = ""</code> <em>inside the class but outside any method</em>,
+      it belongs to the <strong>class itself</strong>, not to each individual object.
+      Any object that has never been given its own value will just borrow the class's value —
+      and if the class's value changes, so does theirs.
+    </p>
+  </div>
+
+  <!-- ── Part 3 ── -->
+  <h2>Part 3 — Fix it with <code>__init__</code></h2>
+
+  <p>
+    The solution is to give every object its own values right when it is created.
+    Python provides a special method for exactly this: <code>__init__</code>
+    (short for <em>initialise</em>). It runs automatically every time you create a new object.
+  </p>
+
+<pre><code><span class="kw">class</span> <span class="fn">Track</span>:
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="fn">self</span>, title, artist):
+        <span class="fn">self</span>.title  = title
+        <span class="fn">self</span>.artist = artist
+</code></pre>
+
+  <div class="panel tip">
+    <div class="panel-title">💡 What is <code>self</code>?</div>
+    <p>
+      <code>self</code> refers to <em>this particular object</em>. When you write
+      <code>self.title = title</code> you are saying "store the value of <code>title</code>
+      inside <em>this</em> Track object". Every object gets its very own copy.
+    </p>
+  </div>
+
+  <p>Now creating tracks is much neater, and each one is completely independent:</p>
+
+<pre><code>song1 = Track(<span class="str">"Wonderwall"</span>, <span class="str">"Oasis"</span>)
+song2 = Track(<span class="str">"Never Gonna Give You Up"</span>, <span class="str">"Rick Astley"</span>)
+song3 = Track(<span class="str">"Bohemian Rhapsody"</span>, <span class="str">"Queen"</span>)
+
+<span class="fn">print</span>(song1.title)   <span class="cm"># Wonderwall</span>
+<span class="fn">print</span>(song2.artist)  <span class="cm"># Rick Astley</span>
+</code></pre>
+
+  <!-- ── Part 4 ── -->
+  <h2>Part 4 — Adding tracks to the player</h2>
+
+  <p>
+    The <code>pypod</code> module gives you a function called <code>add_track()</code>.
+    Pass it a Track object and it will appear in the song selection list on screen.
+  </p>
+
+  <p>Here is the full <code>main.py</code> you will write in this lesson:</p>
+
+  <span class="filename">main.py</span>
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> Track, add_track, start
+
+<span class="cm"># Define the Track class</span>
+<span class="kw">class</span> <span class="fn">Track</span>:
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="fn">self</span>, title, artist):
+        <span class="fn">self</span>.title  = title
+        <span class="fn">self</span>.artist = artist
+
+<span class="cm"># Create some tracks and add them to the player</span>
+song1 = Track(<span class="str">"Wonderwall"</span>, <span class="str">"Oasis"</span>)
+song2 = Track(<span class="str">"Never Gonna Give You Up"</span>, <span class="str">"Rick Astley"</span>)
+song3 = Track(<span class="str">"Bohemian Rhapsody"</span>, <span class="str">"Queen"</span>)
+
+<span class="fn">add_track</span>(song1)
+<span class="fn">add_track</span>(song2)
+<span class="fn">add_track</span>(song3)
+
+<span class="cm"># Start the app — always the last line</span>
+<span class="fn">start</span>()
+</code></pre>
+
+  <div class="panel tip">
+    <div class="panel-title">💡 Tip — pypod already has Track built in!</div>
+    <p>
+      You may have noticed the import at the top includes <code>Track</code> from
+      <code>pypod</code>. The teacher has already written a full version of the class for
+      you there. You are re-writing it yourself in this lesson to understand how it works;
+      in later lessons you will use the <code>pypod</code> version directly.
+    </p>
+  </div>
+
+  <ol class="steps">
+    <li>Type out the class definition and make sure you get the indentation right.</li>
+    <li>Create three <code>Track</code> objects — use song titles you actually like!</li>
+    <li>Call <code>add_track()</code> for each one and run the code.</li>
+    <li>Check that all three songs appear in the list on the device screen.</li>
+  </ol>
+
+  <div class="panel challenge">
+    <div class="panel-title">🏆 Challenge</div>
+    <ul>
+      <li>Add a <code>year</code> attribute to your <code>Track</code> class (inside <code>__init__</code>).</li>
+      <li>Create five tracks, all from different years.</li>
+      <li>Can you write a <code>print</code> statement that shows
+          <em>"Wonderwall was released in 1995"</em> (using your object's attributes)?</li>
+    </ul>
+  </div>
+
+  <nav class="lesson-nav">
+    <a class="disabled" href="#">← Previous</a>
+    <span class="lesson-counter">1 / 6</span>
+    <a href="lesson2.html">Next → Lesson 2</a>
+  </nav>
+
+</main>
+</body>
+</html>

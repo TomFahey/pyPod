@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — Keeping Time | pyPod CodeClub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="logo" href="lesson1.html">🎵 pyPod</a>
+  <a href="lesson1.html">1</a>
+  <a href="lesson2.html">2</a>
+  <a href="lesson3.html">3</a>
+  <a href="lesson4.html">4</a>
+  <a href="lesson5.html" class="active">5</a>
+  <a href="lesson6.html">6</a>
+</nav>
+
+<header class="lesson-header">
+  <div class="session-tag">Session 5 of 6</div>
+  <h1>Keeping Time</h1>
+  <p class="subtitle">Update the timestamp label and progress bar as the song plays.</p>
+</header>
+
+<main class="content">
+
+  <div class="panel objectives">
+    <div class="panel-title">🎯 By the end of this lesson you will be able to…</div>
+    <ul>
+      <li>Explain what <code>on_tick</code> does and when it fires</li>
+      <li>Write a tick handler that receives the elapsed time in seconds</li>
+      <li>Format a number of seconds as a <code>m:ss</code> string</li>
+      <li>Update the timestamp label and progress bar on the Now Playing page</li>
+    </ul>
+  </div>
+
+  <!-- ── Part 1 ── -->
+  <h2>Part 1 — The tick: a heartbeat for your app</h2>
+
+  <p>
+    Once a song is playing you need the screen to <em>keep updating</em> — the timestamp
+    counting up, the progress bar filling in. But your code has already finished running
+    from top to bottom. Who does the updating?
+  </p>
+
+  <p>
+    The <code>pypod</code> module contains a hidden timer. Every 500 milliseconds (half a
+    second) while a song is playing it fires a <em>tick</em>. If you have registered an
+    <code>on_tick</code> callback, the timer calls your function automatically and passes in
+    how many seconds have elapsed so far.
+  </p>
+
+  <div class="callout">
+    <span class="icon">⏱️</span>
+    <p>
+      Think of the tick like a clock ticking in the background. Your function is the
+      clock hand — every tick, it moves forward and updates what is shown on screen.
+    </p>
+  </div>
+
+  <!-- ── Part 2 ── -->
+  <h2>Part 2 — Registering an <code>on_tick</code> callback</h2>
+
+  <p>
+    <code>on_tick</code> works exactly like <code>on_song_selected</code> from Lesson 4 —
+    register a function and it will be called automatically. The only difference is that
+    your function receives one argument: the number of <em>seconds</em> elapsed.
+  </p>
+
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> on_tick
+
+<span class="kw">@</span><span class="fn">on_tick</span>
+<span class="kw">def</span> <span class="fn">update_display</span>(elapsed):
+    <span class="fn">print</span>(elapsed)   <span class="cm"># 0, 0, 1, 1, 2, 2, 3 … (twice per second)</span>
+</code></pre>
+
+  <!-- ── Part 3 ── -->
+  <h2>Part 3 — Formatting the time as <code>m:ss</code></h2>
+
+  <p>
+    The <code>elapsed</code> value is just a plain number of seconds — e.g. <code>79</code>.
+    The timestamp label on screen expects a string like <code>"1:19"</code>.
+    Here is how to convert it:
+  </p>
+
+<pre><code><span class="kw">def</span> <span class="fn">format_time</span>(seconds):
+    m = seconds // <span class="num">60</span>    <span class="cm"># integer division — how many whole minutes?</span>
+    s = seconds  % <span class="num">60</span>    <span class="cm"># remainder — how many seconds left over?</span>
+    <span class="kw">return</span> <span class="str">"{:d}:{:02d}"</span>.<span class="fn">format</span>(m, s)
+
+<span class="fn">print</span>(<span class="fn">format_time</span>(<span class="num">79</span>))    <span class="cm"># 1:19</span>
+<span class="fn">print</span>(<span class="fn">format_time</span>(<span class="num">4</span>))     <span class="cm"># 0:04</span>
+<span class="fn">print</span>(<span class="fn">format_time</span>(<span class="num">183</span>))   <span class="cm"># 3:03</span>
+</code></pre>
+
+  <div class="panel tip">
+    <div class="panel-title">💡 What does <code>:02d</code> mean?</div>
+    <p>
+      Inside a format string, <code>{:02d}</code> means: print an integer (<code>d</code>),
+      at least 2 digits wide (<code>2</code>), padding with zeroes if needed (<code>0</code>).
+      So <code>4</code> becomes <code>"04"</code> and <code>33</code> stays <code>"33"</code>.
+      That is how you get the proper <code>0:04</code> rather than <code>0:4</code>.
+    </p>
+  </div>
+
+  <!-- ── Part 4 ── -->
+  <h2>Part 4 — Updating the timestamp label</h2>
+
+  <p>
+    <code>show_timestamp()</code> takes a number of seconds and updates the label on screen.
+    Call it inside your tick handler:
+  </p>
+
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> on_tick, show_timestamp
+
+<span class="kw">@</span><span class="fn">on_tick</span>
+<span class="kw">def</span> <span class="fn">update_display</span>(elapsed):
+    <span class="fn">show_timestamp</span>(elapsed)
+</code></pre>
+
+  <!-- ── Part 5 ── -->
+  <h2>Part 5 — Updating the progress bar</h2>
+
+  <p>
+    <code>show_progress(elapsed, total)</code> fills the progress bar proportionally.
+    <code>total</code> is the total duration of the track in seconds. Because we do not
+    always know the exact length, using a safe upper bound of <code>400</code>
+    (about 6.5 minutes) works well enough:
+  </p>
+
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> on_tick, show_timestamp, show_progress
+
+<span class="kw">@</span><span class="fn">on_tick</span>
+<span class="kw">def</span> <span class="fn">update_display</span>(elapsed):
+    <span class="fn">show_timestamp</span>(elapsed)
+    <span class="fn">show_progress</span>(elapsed, <span class="num">400</span>)
+</code></pre>
+
+  <p>
+    The progress bar will advance steadily and simply stop growing once the song ends.
+  </p>
+
+  <!-- ── Part 6 ── -->
+  <h2>Part 6 — The full <code>main.py</code> so far</h2>
+
+  <span class="filename">main.py</span>
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> (
+    Track, add_track,
+    play, next_track,
+    on_song_selected, on_track_ended, on_tick,
+    show_timestamp, show_progress,
+    list_music_files, music_path, lyrics_path,
+    start,
+)
+
+<span class="cm"># --- functions from previous lessons ---</span>
+<span class="kw">def</span> <span class="fn">parse_filename</span>(filename): ...
+<span class="kw">def</span> <span class="fn">load_lyrics</span>(path): ...
+
+<span class="cm"># --- build the track list ---</span>
+<span class="kw">for</span> filename <span class="kw">in</span> <span class="fn">list_music_files</span>():
+    title, artist = <span class="fn">parse_filename</span>(filename)
+    track = Track(title=title, artist=artist,
+                  file_path=<span class="fn">music_path</span>(filename),
+                  lyrics=<span class="fn">load_lyrics</span>(<span class="fn">lyrics_path</span>(title)))
+    <span class="fn">add_track</span>(track)
+
+<span class="cm"># --- callbacks ---</span>
+current_track = <span class="kw">None</span>
+
+<span class="kw">@</span><span class="fn">on_song_selected</span>
+<span class="kw">def</span> <span class="fn">handle_selection</span>(track):
+    <span class="kw">global</span> current_track
+    current_track = track
+    <span class="fn">play</span>(track)
+
+<span class="kw">@</span><span class="fn">on_track_ended</span>
+<span class="kw">def</span> <span class="fn">handle_end</span>():
+    <span class="fn">next_track</span>()
+
+<span class="kw">@</span><span class="fn">on_tick</span>
+<span class="kw">def</span> <span class="fn">update_display</span>(elapsed):
+    <span class="fn">show_timestamp</span>(elapsed)
+    <span class="fn">show_progress</span>(elapsed, <span class="num">400</span>)
+
+<span class="fn">start</span>()
+</code></pre>
+
+  <ol class="steps">
+    <li>Add the <code>on_tick</code> import and the <code>update_display</code> function to your <code>main.py</code>.</li>
+    <li>Play a song — the timestamp and progress bar should now update every half-second.</li>
+    <li>Pause and resume — does the timestamp pause and resume correctly?</li>
+  </ol>
+
+  <div class="panel challenge">
+    <div class="panel-title">🏆 Challenge</div>
+    <ul>
+      <li>
+        Can you also display the <em>remaining</em> time (total − elapsed) somewhere?
+        You could print it to the console, or — if you feel adventurous — update the
+        <code>timestamp_lbl</code> widget to show both.
+      </li>
+      <li>
+        What is the largest number of seconds that your <code>format_time</code> function
+        handles correctly? What goes wrong with very long durations? Does it matter for songs?
+      </li>
+    </ul>
+  </div>
+
+  <nav class="lesson-nav">
+    <a href="lesson4.html">← Lesson 4</a>
+    <span class="lesson-counter">5 / 6</span>
+    <a href="lesson6.html">Next → Lesson 6</a>
+  </nav>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Reading the Lyrics | pyPod CodeClub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="logo" href="lesson1.html">🎵 pyPod</a>
+  <a href="lesson1.html">1</a>
+  <a href="lesson2.html">2</a>
+  <a href="lesson3.html" class="active">3</a>
+  <a href="lesson4.html">4</a>
+  <a href="lesson5.html">5</a>
+  <a href="lesson6.html">6</a>
+</nav>
+
+<header class="lesson-header">
+  <div class="session-tag">Session 3 of 6</div>
+  <h1>Reading the Lyrics</h1>
+  <p class="subtitle">Open a lyrics file, parse each line, and store the timestamped words inside a Track object.</p>
+</header>
+
+<main class="content">
+
+  <div class="panel objectives">
+    <div class="panel-title">🎯 By the end of this lesson you will be able to…</div>
+    <ul>
+      <li>Open and read a text file in Python</li>
+      <li>Use <code>split()</code> to separate a timestamp from lyric text</li>
+      <li>Convert a time string like <code>"1:19"</code> into a number of seconds</li>
+      <li>Build a list of <code>(seconds, text)</code> pairs</li>
+      <li>Store that list inside a <code>Track</code> object's <code>lyrics</code> attribute</li>
+    </ul>
+  </div>
+
+  <div class="panel tip">
+    <div class="panel-title">🔁 Recall from Lesson 2</div>
+    <p>
+      In Lesson 2 you pulled information out of a <em>filename</em> using string methods.
+      In this lesson you will do the same thing, but with the <em>contents</em> of a file —
+      reading it line by line and extracting two pieces of data from each line.
+    </p>
+  </div>
+
+  <!-- ── Part 1 ── -->
+  <h2>Part 1 — What is in a lyrics file?</h2>
+
+  <p>
+    Each song on the SD card has a matching lyrics file in <code>/sd/transcripts/</code>.
+    The format looks like this:
+  </p>
+
+<pre><code><span class="cm">0:04    [Intro]</span>
+<span class="cm">1:19    Well, oh, they might wear classic Reeboks</span>
+<span class="cm">1:22    Or knackered Converse, or track bottoms stucked in socks</span>
+<span class="cm">1:26    But I'll be forever grateful for the name I've got</span>
+</code></pre>
+
+  <p>
+    Each line has two parts separated by whitespace (spaces or a tab):
+  </p>
+  <ul>
+    <li>A <strong>timestamp</strong> in <code>minutes:seconds</code> format — e.g. <code>1:19</code></li>
+    <li>The <strong>lyric text</strong> for that moment in the song</li>
+  </ul>
+
+  <p>
+    Our goal is to turn each of these lines into a pair of values: the timestamp converted
+    to a number of seconds, and the lyric text. We will store all these pairs in a list.
+  </p>
+
+  <!-- ── Part 2 ── -->
+  <h2>Part 2 — Opening and reading a file</h2>
+
+  <p>
+    Python's built-in <code>open()</code> function opens a file. Using it inside a
+    <code>with</code> block ensures the file is automatically closed when we are done:
+  </p>
+
+<pre><code><span class="kw">with</span> <span class="fn">open</span>(<span class="str">"/sd/transcripts/Wonderwall.txt"</span>) <span class="kw">as</span> f:
+    <span class="kw">for</span> line <span class="kw">in</span> f:
+        <span class="fn">print</span>(line)   <span class="cm"># prints every line in the file</span>
+</code></pre>
+
+  <div class="panel tip">
+    <div class="panel-title">💡 Why use <code>with open(...)</code>?</div>
+    <p>
+      On a microcontroller, leaving files open wastes memory and can cause crashes.
+      The <code>with</code> block guarantees the file is closed even if something goes wrong
+      — you never need to call <code>f.close()</code> yourself.
+    </p>
+  </div>
+
+  <!-- ── Part 3 ── -->
+  <h2>Part 3 — Splitting a line into its parts</h2>
+
+  <p>
+    Each line contains a timestamp and some text. <code>split()</code> without any
+    arguments splits on <em>any</em> whitespace (spaces <em>or</em> tabs).
+    Passing a second argument of <code>1</code> tells it to split only at the
+    <em>first</em> whitespace it finds — which is exactly what we want:
+  </p>
+
+<pre><code>line = <span class="str">"1:19    Well, oh, they might wear classic Reeboks\n"</span>
+
+parts = line.<span class="fn">strip</span>().<span class="fn">split</span>(<span class="kw">None</span>, <span class="num">1</span>)
+<span class="fn">print</span>(parts)
+<span class="cm"># ['1:19', 'Well, oh, they might wear classic Reeboks']</span>
+
+timestamp = parts[<span class="num">0</span>]  <span class="cm"># '1:19'</span>
+text      = parts[<span class="num">1</span>]  <span class="cm"># 'Well, oh, they might wear classic Reeboks'</span>
+</code></pre>
+
+  <!-- ── Part 4 ── -->
+  <h2>Part 4 — Converting a timestamp to seconds</h2>
+
+  <p>
+    The timestamp <code>"1:19"</code> means 1 minute and 19 seconds.
+    We need to convert it to a single number (79 seconds) so we can compare it
+    against how long the song has been playing.
+  </p>
+
+<pre><code>timestamp = <span class="str">"1:19"</span>
+
+minutes, seconds = timestamp.<span class="fn">split</span>(<span class="str">":"</span>)   <span class="cm"># ['1', '19']</span>
+
+total_seconds = <span class="fn">int</span>(minutes) * <span class="num">60</span> + <span class="fn">int</span>(seconds)
+<span class="fn">print</span>(total_seconds)   <span class="cm"># 79</span>
+</code></pre>
+
+  <div class="panel tip">
+    <div class="panel-title">💡 Why <code>int()</code>?</div>
+    <p>
+      <code>split()</code> always gives back <em>strings</em>. The string <code>"1"</code>
+      and the number <code>1</code> look the same but behave very differently:
+      <code>"1" + "19"</code> gives <code>"119"</code>, not <code>20</code>.
+      <code>int()</code> converts the string to a proper number.
+    </p>
+  </div>
+
+  <!-- ── Part 5 ── -->
+  <h2>Part 5 — Writing <code>load_lyrics()</code></h2>
+
+  <p>
+    Now combine all of the above into a function. It takes a file path, reads every line,
+    and returns a list of <code>(seconds, text)</code> pairs:
+  </p>
+
+<pre><code><span class="kw">def</span> <span class="fn">load_lyrics</span>(path):
+    <span class="str">"""Read a lyrics file and return a list of (seconds, lyric) pairs."""</span>
+    entries = []
+
+    <span class="kw">with</span> <span class="fn">open</span>(path) <span class="kw">as</span> f:
+        <span class="kw">for</span> line <span class="kw">in</span> f:
+            parts = line.<span class="fn">strip</span>().<span class="fn">split</span>(<span class="kw">None</span>, <span class="num">1</span>)
+
+            <span class="kw">if</span> <span class="fn">len</span>(parts) == <span class="num">2</span>:               <span class="cm"># skip blank lines</span>
+                minutes, seconds = parts[<span class="num">0</span>].<span class="fn">split</span>(<span class="str">":"</span>)
+                total = <span class="fn">int</span>(minutes) * <span class="num">60</span> + <span class="fn">int</span>(seconds)
+                entries.<span class="fn">append</span>((total, parts[<span class="num">1</span>]))
+
+    <span class="kw">return</span> entries
+</code></pre>
+
+  <!-- ── Part 6 ── -->
+  <h2>Part 6 — Storing lyrics inside a Track</h2>
+
+  <p>
+    The <code>Track</code> class already has a <code>lyrics</code> attribute.
+    Update your <code>for</code> loop from Lesson 2 to call <code>load_lyrics()</code>
+    when creating each track:
+  </p>
+
+  <span class="filename">main.py</span>
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> Track, add_track, list_music_files, music_path, lyrics_path, start
+
+
+<span class="kw">def</span> <span class="fn">parse_filename</span>(filename):
+    stem     = filename[:-<span class="num">4</span>]
+    position = stem.<span class="fn">rfind</span>(<span class="str">"("</span>)
+    title    = stem[:position].<span class="fn">strip</span>()
+    artist   = stem[position + <span class="num">1</span> : -<span class="num">1</span>].<span class="fn">strip</span>()
+    <span class="kw">return</span> title, artist
+
+
+<span class="kw">def</span> <span class="fn">load_lyrics</span>(path):
+    entries = []
+    <span class="kw">with</span> <span class="fn">open</span>(path) <span class="kw">as</span> f:
+        <span class="kw">for</span> line <span class="kw">in</span> f:
+            parts = line.<span class="fn">strip</span>().<span class="fn">split</span>(<span class="kw">None</span>, <span class="num">1</span>)
+            <span class="kw">if</span> <span class="fn">len</span>(parts) == <span class="num">2</span>:
+                minutes, seconds = parts[<span class="num">0</span>].<span class="fn">split</span>(<span class="str">":"</span>)
+                total = <span class="fn">int</span>(minutes) * <span class="num">60</span> + <span class="fn">int</span>(seconds)
+                entries.<span class="fn">append</span>((total, parts[<span class="num">1</span>]))
+    <span class="kw">return</span> entries
+
+
+<span class="kw">for</span> filename <span class="kw">in</span> <span class="fn">list_music_files</span>():
+    title, artist = <span class="fn">parse_filename</span>(filename)
+    track = Track(
+        title     = title,
+        artist    = artist,
+        file_path = <span class="fn">music_path</span>(filename),
+        lyrics    = <span class="fn">load_lyrics</span>(<span class="fn">lyrics_path</span>(title)),
+    )
+    <span class="fn">add_track</span>(track)
+
+
+<span class="fn">start</span>()
+</code></pre>
+
+  <ol class="steps">
+    <li>Add the <code>load_lyrics</code> function to your <code>main.py</code>.</li>
+    <li>Update the <code>Track()</code> call to include <code>lyrics = load_lyrics(lyrics_path(title))</code>.</li>
+    <li>Add a <code>print</code> statement inside the loop to show the first lyric entry for each track — confirm it is a <code>(seconds, text)</code> pair.</li>
+    <li>Remove the <code>print</code> once you are happy it works.</li>
+  </ol>
+
+  <div class="panel challenge">
+    <div class="panel-title">🏆 Challenge</div>
+    <ul>
+      <li>
+        What happens if a lyrics file does not exist for a track?
+        Wrap the <code>open()</code> call in a <code>try / except</code> block so that
+        <code>load_lyrics</code> returns an empty list <code>[]</code> instead of crashing.
+      </li>
+      <li>
+        How many total lyric lines does each song have?
+        Print the song title and the length of its lyrics list inside the loop.
+      </li>
+    </ul>
+  </div>
+
+  <nav class="lesson-nav">
+    <a href="lesson2.html">← Lesson 2</a>
+    <span class="lesson-counter">3 / 6</span>
+    <a href="lesson4.html">Next → Lesson 4</a>
+  </nav>
+
+</main>
+</body>
+</html>

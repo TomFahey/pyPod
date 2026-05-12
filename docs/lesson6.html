@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 6 — Sing Along! | pyPod CodeClub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="logo" href="lesson1.html">🎵 pyPod</a>
+  <a href="lesson1.html">1</a>
+  <a href="lesson2.html">2</a>
+  <a href="lesson3.html">3</a>
+  <a href="lesson4.html">4</a>
+  <a href="lesson5.html">5</a>
+  <a href="lesson6.html" class="active">6</a>
+</nav>
+
+<header class="lesson-header">
+  <div class="session-tag">Session 6 of 6</div>
+  <h1>Sing Along! 🎤</h1>
+  <p class="subtitle">Display time-synced lyrics that scroll as the song plays — the finishing touch on your karaoke player.</p>
+</header>
+
+<main class="content">
+
+  <div class="panel objectives">
+    <div class="panel-title">🎯 By the end of this lesson you will be able to…</div>
+    <ul>
+      <li>Iterate through a list of <code>(seconds, text)</code> pairs to find the current lyric</li>
+      <li>Explain the <em>lookahead</em> technique and why it improves the experience</li>
+      <li>Use <code>show_lyrics()</code> to display text in the lyrics area</li>
+      <li>Combine everything from all six lessons into a fully working karaoke player</li>
+    </ul>
+  </div>
+
+  <div class="panel tip">
+    <div class="panel-title">🔁 Recall from Lesson 3 & 5</div>
+    <p>
+      In Lesson 3 you parsed each lyrics file into a list like:<br>
+      <code>[(4, "[Intro]"), (79, "Well, oh, they might wear…"), (82, "Or knackered Converse…")]</code>
+      <br>
+      In Lesson 5 you wrote an <code>on_tick</code> handler that fires every 500 ms with the
+      current <code>elapsed</code> time. Now you will combine those two pieces.
+    </p>
+  </div>
+
+  <!-- ── Part 1 ── -->
+  <h2>Part 1 — Finding the right lyric line</h2>
+
+  <p>
+    Given that the song is at <code>elapsed = 81</code> seconds, which lyric should be
+    showing? We need to find the <em>last</em> entry in the list whose timestamp is
+    less than or equal to 81:
+  </p>
+
+<pre><code>lyrics = [
+    (<span class="num">4</span>,  <span class="str">"[Intro]"</span>),
+    (<span class="num">79</span>, <span class="str">"Well, oh, they might wear classic Reeboks"</span>),
+    (<span class="num">82</span>, <span class="str">"Or knackered Converse, or track bottoms stucked in socks"</span>),
+]
+
+elapsed = <span class="num">81</span>
+
+current = <span class="str">""</span>
+<span class="kw">for</span> timestamp, text <span class="kw">in</span> lyrics:
+    <span class="kw">if</span> timestamp &lt;= elapsed:
+        current = text   <span class="cm"># keep updating — last one that fits wins</span>
+
+<span class="fn">print</span>(current)
+<span class="cm"># "Well, oh, they might wear classic Reeboks"</span>
+<span class="cm"># (82 is too late — we are only at 81)</span>
+</code></pre>
+
+  <p>
+    The trick is that we <em>keep updating</em> <code>current</code> as long as
+    the timestamp fits. By the end of the loop, <code>current</code> holds the
+    most recent lyric that has been reached.
+  </p>
+
+  <!-- ── Part 2 ── -->
+  <h2>Part 2 — The lookahead trick</h2>
+
+  <p>
+    Showing the lyric at the <em>exact</em> moment it is sung is a little too late —
+    the viewer needs a second or two to read the words before singing them!
+  </p>
+
+  <p>
+    The solution is simple: pretend you are a few seconds <em>further ahead</em> when
+    you search the list. We call this value the <strong>lookahead</strong>:
+  </p>
+
+<pre><code>LOOKAHEAD = <span class="num">2</span>   <span class="cm"># show each lyric 2 seconds before it is sung</span>
+
+current = <span class="str">""</span>
+<span class="kw">for</span> timestamp, text <span class="kw">in</span> lyrics:
+    <span class="kw">if</span> timestamp &lt;= elapsed + LOOKAHEAD:
+        current = text
+</code></pre>
+
+  <p>
+    With <code>LOOKAHEAD = 2</code> and <code>elapsed = 80</code>, the search looks for
+    entries up to second 82. That means the line at second 82 will already appear at
+    second 80 — two seconds early — giving the singer time to read it.
+  </p>
+
+  <div class="callout">
+    <span class="icon">🎤</span>
+    <p>
+      Try changing <code>LOOKAHEAD</code> to <code>0</code>, then to <code>4</code>.
+      Which feels most natural when you are singing along?
+    </p>
+  </div>
+
+  <!-- ── Part 3 ── -->
+  <h2>Part 3 — Wrapping it in a function</h2>
+
+  <p>
+    As always, if you are going to call the same logic more than once, put it in a function:
+  </p>
+
+<pre><code><span class="kw">def</span> <span class="fn">get_current_lyric</span>(lyrics, elapsed):
+    <span class="str">"""Return the lyric that should be showing at 'elapsed' seconds."""</span>
+    current = <span class="str">""</span>
+    <span class="kw">for</span> timestamp, text <span class="kw">in</span> lyrics:
+        <span class="kw">if</span> timestamp &lt;= elapsed + LOOKAHEAD:
+            current = text
+    <span class="kw">return</span> current
+</code></pre>
+
+  <!-- ── Part 4 ── -->
+  <h2>Part 4 — Displaying the lyric on screen</h2>
+
+  <p>
+    <code>show_lyrics(text)</code> puts any string into the lyrics area on the Now Playing page.
+    Call it inside your tick handler:
+  </p>
+
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> on_tick, show_timestamp, show_progress, show_lyrics
+
+LOOKAHEAD = <span class="num">2</span>
+
+<span class="kw">@</span><span class="fn">on_tick</span>
+<span class="kw">def</span> <span class="fn">update_display</span>(elapsed):
+    <span class="fn">show_timestamp</span>(elapsed)
+    <span class="fn">show_progress</span>(elapsed, <span class="num">400</span>)
+
+    <span class="kw">if</span> current_track <span class="kw">is not None</span> <span class="kw">and</span> current_track.lyrics:
+        lyric = <span class="fn">get_current_lyric</span>(current_track.lyrics, elapsed)
+        <span class="fn">show_lyrics</span>(lyric)
+</code></pre>
+
+  <!-- ── Part 5 ── -->
+  <h2>Part 5 — The finished <code>main.py</code></h2>
+
+  <p>
+    Here is the complete, finished student code — the result of all six lessons.
+    Every line should feel familiar now.
+  </p>
+
+  <span class="filename">main.py</span>
+<pre><code><span class="kw">from</span> pypod <span class="kw">import</span> (
+    Track, add_track,
+    play, next_track,
+    on_song_selected, on_track_ended, on_tick,
+    show_timestamp, show_progress, show_lyrics,
+    list_music_files, music_path, lyrics_path,
+    start,
+)
+
+
+<span class="cm"># ── Lesson 3: load timestamped lyrics ────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">load_lyrics</span>(path):
+    entries = []
+    <span class="kw">try</span>:
+        <span class="kw">with</span> <span class="fn">open</span>(path) <span class="kw">as</span> f:
+            <span class="kw">for</span> line <span class="kw">in</span> f:
+                parts = line.<span class="fn">strip</span>().<span class="fn">split</span>(<span class="kw">None</span>, <span class="num">1</span>)
+                <span class="kw">if</span> <span class="fn">len</span>(parts) == <span class="num">2</span>:
+                    minutes, seconds = parts[<span class="num">0</span>].<span class="fn">split</span>(<span class="str">":"</span>)
+                    total = <span class="fn">int</span>(minutes) * <span class="num">60</span> + <span class="fn">int</span>(seconds)
+                    entries.<span class="fn">append</span>((total, parts[<span class="num">1</span>]))
+    <span class="kw">except</span> Exception:
+        <span class="kw">pass</span>
+    <span class="kw">return</span> entries
+
+
+<span class="cm"># ── Lesson 2: parse filenames from the SD card ───────────────────</span>
+<span class="kw">def</span> <span class="fn">parse_filename</span>(filename):
+    stem     = filename[:-<span class="num">4</span>]
+    position = stem.<span class="fn">rfind</span>(<span class="str">"("</span>)
+    title    = stem[:position].<span class="fn">strip</span>()
+    artist   = stem[position + <span class="num">1</span> : -<span class="num">1</span>].<span class="fn">strip</span>()
+    <span class="kw">return</span> title, artist
+
+
+<span class="kw">for</span> filename <span class="kw">in</span> <span class="fn">list_music_files</span>():
+    title, artist = <span class="fn">parse_filename</span>(filename)
+    track = Track(
+        title     = title,
+        artist    = artist,
+        file_path = <span class="fn">music_path</span>(filename),
+        lyrics    = <span class="fn">load_lyrics</span>(<span class="fn">lyrics_path</span>(title)),
+    )
+    <span class="fn">add_track</span>(track)
+
+
+<span class="cm"># ── Lesson 4: play music when a song is selected ─────────────────</span>
+current_track = <span class="kw">None</span>
+
+<span class="kw">@</span><span class="fn">on_song_selected</span>
+<span class="kw">def</span> <span class="fn">handle_selection</span>(track):
+    <span class="kw">global</span> current_track
+    current_track = track
+    <span class="fn">play</span>(track)
+
+<span class="kw">@</span><span class="fn">on_track_ended</span>
+<span class="kw">def</span> <span class="fn">handle_end</span>():
+    <span class="fn">next_track</span>()
+
+
+<span class="cm"># ── Lessons 5 & 6: update display and lyrics every tick ──────────</span>
+LOOKAHEAD = <span class="num">2</span>
+
+<span class="kw">def</span> <span class="fn">get_current_lyric</span>(lyrics, elapsed):
+    current = <span class="str">""</span>
+    <span class="kw">for</span> timestamp, text <span class="kw">in</span> lyrics:
+        <span class="kw">if</span> timestamp &lt;= elapsed + LOOKAHEAD:
+            current = text
+    <span class="kw">return</span> current
+
+<span class="kw">@</span><span class="fn">on_tick</span>
+<span class="kw">def</span> <span class="fn">update_display</span>(elapsed):
+    <span class="fn">show_timestamp</span>(elapsed)
+    <span class="fn">show_progress</span>(elapsed, <span class="num">400</span>)
+    <span class="kw">if</span> current_track <span class="kw">is not None</span> <span class="kw">and</span> current_track.lyrics:
+        <span class="fn">show_lyrics</span>(<span class="fn">get_current_lyric</span>(current_track.lyrics, elapsed))
+
+
+<span class="cm"># ── Always last ──────────────────────────────────────────────────</span>
+<span class="fn">start</span>()
+</code></pre>
+
+  <ol class="steps">
+    <li>Add <code>LOOKAHEAD</code>, <code>get_current_lyric</code>, and the <code>show_lyrics</code> call to your <code>update_display</code> function.</li>
+    <li>Play a song that has a lyrics file — the lyrics area should now scroll as the song plays.</li>
+    <li>Try adjusting <code>LOOKAHEAD</code> to <code>0</code> and <code>4</code> — notice the difference.</li>
+    <li>Try playing a song with no lyrics file — the app should still work, just showing nothing in the lyrics area.</li>
+  </ol>
+
+  <div class="panel challenge">
+    <div class="panel-title">🏆 Final challenge</div>
+    <ul>
+      <li>
+        <strong>Show a window of upcoming lyrics.</strong> Instead of showing just one line,
+        collect the <em>next three lines</em> after the current one and display them all —
+        joined with <code>"\n"</code>. (Hint: you will need to track the <em>index</em> of the
+        current lyric, not just the text.)
+      </li>
+      <li>
+        <strong>Clear the lyrics when a song ends.</strong> Register an additional action
+        inside <code>handle_end</code> that calls <code>show_lyrics("")</code> before
+        moving to the next track.
+      </li>
+      <li>
+        <strong>Stretch goal:</strong> Add a <code>set_volume()</code> call somewhere in
+        your code to start playback at a specific volume level. Can you read the starting
+        volume from the arc widget before the song begins?
+      </li>
+    </ul>
+  </div>
+
+  <!-- ── Wrap-up ── -->
+  <h2>🎉 You have built a karaoke player!</h2>
+
+  <p>
+    Look back at what you have learned across six sessions:
+  </p>
+
+  <div class="panel objectives">
+    <div class="panel-title">📚 Concepts covered in this project</div>
+    <ul>
+      <li><strong>Lesson 1</strong> — Classes, <code>__init__</code>, object instances, <code>self</code></li>
+      <li><strong>Lesson 2</strong> — String slicing, <code>rfind</code>, <code>strip</code>, functions, <code>for</code> loops, tuples</li>
+      <li><strong>Lesson 3</strong> — File reading, <code>split()</code>, <code>int()</code>, nested lists, <code>try/except</code></li>
+      <li><strong>Lesson 4</strong> — Callbacks, the decorator syntax (<code>@</code>), <code>global</code></li>
+      <li><strong>Lesson 5</strong> — The tick, time formatting with <code>//</code> and <code>%</code>, string formatting</li>
+      <li><strong>Lesson 6</strong> — Searching a sorted list, the lookahead trick, putting it all together</li>
+    </ul>
+  </div>
+
+  <nav class="lesson-nav">
+    <a href="lesson5.html">← Lesson 5</a>
+    <span class="lesson-counter">6 / 6</span>
+    <a class="disabled" href="#">Finished! 🎤</a>
+  </nav>
+
+</main>
+</body>
+</html>
