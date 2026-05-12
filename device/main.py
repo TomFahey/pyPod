@@ -22,11 +22,11 @@ import audio
 # ── Constants ─────────────────────────────────────────────────────
 MUSIC_DIR       = "/sd/music"
 LYRICS_DIR      = "/sd/transcripts"
-LYRIC_LOOKAHEAD = 2      # show a lyric this many seconds before its timestamp
-LYRIC_LINES     = 5      # number of lyric lines visible at once
-UPDATE_MS       = 500    # how often the playback UI refreshes (ms)
+LYRIC_LOOKAHEAD = 0      # show a lyric this many seconds before its timestamp
+LYRIC_LINES     = 4      # number of lyric lines visible at once
+UPDATE_MS       = 1000   # how often the playback UI refreshes (ms)
 DEFAULT_VOL     = 60     # startup volume (0–100); arc init value = DEFAULT_VOL // 2
-MAX_VOLUME      = 50     # Soft cap on volume
+MAX_VOLUME      = 40     # Soft cap on volume
 
 # ── Colour palette ────────────────────────────────────────────────
 BG                  = 0x121212
