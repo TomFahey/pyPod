@@ -1,0 +1,345 @@
+/* ════════════════════════════════════════════════════════════════════
+   Floating Python REPL widget — pyPod edition
+   Catppuccin Mocha colour palette
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── FAB (floating action button) ────────────────────────────────────── */
+#repl-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+#repl-fab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #2d6a4f;
+  color: #fff;
+  border: none;
+  border-radius: 28px;
+  padding: 11px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+  transition: background 0.18s, transform 0.15s, box-shadow 0.15s;
+  user-select: none;
+}
+#repl-fab:hover {
+  background: #1b4332;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+}
+#repl-fab.repl-fab-open {
+  background: #1b4332;
+}
+
+/* ── Panel ─────────────────────────────────────────────────────────────── */
+#repl-panel {
+  position: absolute;
+  bottom: 58px;
+  right: 0;
+  width: 380px;
+  background: #1e1e2e;
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: max-height 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.22s ease;
+}
+#repl-panel.repl-open {
+  max-height: 620px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+#repl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #181825;
+  color: #cdd6f4;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  flex-shrink: 0;
+}
+#repl-close {
+  background: none;
+  border: none;
+  color: #6c7086;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+#repl-close:hover {
+  background: #313244;
+  color: #cdd6f4;
+}
+
+/* ── Section labels ─────────────────────────────────────────────────────── */
+.repl-section-label {
+  font-size: 10px;
+  color: #585b70;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 700;
+  padding: 6px 12px 3px;
+  background: #181825;
+  border-bottom: 1px solid #313244;
+  flex-shrink: 0;
+}
+
+/* ── Song list ──────────────────────────────────────────────────────────── */
+#repl-songlist-wrap {
+  background: #181825;
+  border-bottom: 1px solid #313244;
+  flex-shrink: 0;
+}
+#sim-songlist {
+  list-style: none;
+  margin: 0;
+  padding: 0 12px;
+  max-height: 72px;
+  overflow-y: auto;
+}
+#sim-songlist li {
+  font-size: 12px;
+  color: #cdd6f4;
+  font-family: 'Courier New', Consolas, monospace;
+  padding: 3px 0;
+  border-bottom: 1px solid #313244;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#sim-songlist li::before {
+  content: '♪ ';
+  color: #a6e3a1;
+}
+#sim-songlist-empty {
+  font-size: 11px;
+  color: #45475a;
+  font-style: italic;
+  padding: 5px 12px 7px;
+}
+#sim-songlist-empty code {
+  color: #89b4fa;
+  background: none;
+  font-style: normal;
+}
+
+/* ── Now-playing section ─────────────────────────────────────────────────── */
+#repl-nowplaying-wrap {
+  background: #181825;
+  border-bottom: 1px solid #313244;
+  flex-shrink: 0;
+  padding-bottom: 6px;
+}
+#sim-nowplaying {
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: 12px;
+  padding: 5px 12px 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#sim-nowplaying.repl-nowplaying-default {
+  color: #45475a;
+  font-style: italic;
+}
+#sim-nowplaying.repl-nowplaying-active {
+  color: #a6e3a1;
+}
+.repl-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 12px;
+}
+.repl-timestamp {
+  font-size: 11px;
+  color: #a6adc8;
+  font-family: 'Courier New', Consolas, monospace;
+  min-width: 28px;
+}
+.repl-progress-bg {
+  flex: 1;
+  height: 5px;
+  background: #313244;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.repl-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #89b4fa;
+  border-radius: 3px;
+  transition: width 0.4s linear;
+}
+#sim-lyrics {
+  font-size: 11px;
+  color: #f9e2af;
+  font-style: italic;
+  padding: 3px 12px 2px;
+  min-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Code editor ──────────────────────────────────────────────────────── */
+#repl-editor {
+  padding: 8px 10px 4px;
+  flex-shrink: 0;
+}
+#repl-code {
+  width: 100%;
+  box-sizing: border-box;
+  background: #181825;
+  color: #cdd6f4;
+  border: 1px solid #313244;
+  border-radius: 6px;
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 8px 10px;
+  resize: none;
+  height: 110px;
+  outline: none;
+  tab-size: 4;
+  caret-color: #89b4fa;
+  transition: border-color 0.15s;
+}
+#repl-code:focus {
+  border-color: #89b4fa;
+}
+#repl-code::placeholder {
+  color: #45475a;
+  font-style: italic;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────────────── */
+#repl-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 6px 0 2px;
+  align-items: center;
+}
+#repl-run {
+  background: #89b4fa;
+  color: #1e1e2e;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+#repl-run:hover:not(:disabled) {
+  background: #b4d0ff;
+}
+#repl-run:disabled {
+  background: #313244;
+  color: #6c7086;
+  cursor: not-allowed;
+}
+#repl-clear {
+  background: none;
+  border: 1px solid #45475a;
+  color: #a6adc8;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+#repl-clear:hover {
+  border-color: #a6adc8;
+  color: #cdd6f4;
+}
+.repl-hint {
+  margin-left: auto;
+  font-size: 11px;
+  color: #45475a;
+}
+
+/* ── Output ──────────────────────────────────────────────────────────────── */
+#repl-output-wrap {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 4px 10px 10px;
+}
+#repl-status {
+  font-size: 12px;
+  color: #a6adc8;
+  font-style: italic;
+  padding: 3px 0 2px;
+  min-height: 18px;
+}
+#repl-output {
+  margin: 0;
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: #cdd6f4;
+  background: #181825;
+  border-radius: 5px;
+  padding: 6px 9px;
+  min-height: 20px;
+  display: none;
+}
+#repl-output.has-output { display: block; }
+#repl-output.repl-err   { color: #f38ba8; }
+#repl-output.repl-ok    { color: #a6e3a1; }
+
+/* ── "Try it" buttons below code blocks ─────────────────────────────────── */
+.repl-try-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #2d6a4f;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+  margin-bottom: 2px;
+  opacity: 0.85;
+  transition: opacity 0.15s, background 0.15s;
+}
+.repl-try-btn:hover {
+  opacity: 1;
+  background: #1b4332;
+}
+.repl-try-wrap {
+  margin-top: -6px;
+  margin-bottom: 12px;
+}
+
+/* ── Scrollbar styling inside the panel ─────────────────────────────────── */
+#sim-songlist::-webkit-scrollbar,
+#repl-output-wrap::-webkit-scrollbar { width: 5px; }
+#sim-songlist::-webkit-scrollbar-track,
+#repl-output-wrap::-webkit-scrollbar-track { background: #1e1e2e; }
+#sim-songlist::-webkit-scrollbar-thumb,
+#repl-output-wrap::-webkit-scrollbar-thumb { background: #45475a; border-radius: 3px; }
