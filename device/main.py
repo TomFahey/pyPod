@@ -638,7 +638,5 @@ if __name__ == "__main__":
     except (Exception, KeyboardInterrupt) as e:
         try:
             m5ui.deinit()
-            from utility import print_error_msg
-            print_error_msg(e)
         except ImportError:
             print("please update to latest firmware")
